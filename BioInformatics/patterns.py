@@ -2,11 +2,6 @@
 #  Finding Patterns                                                           #
 ###############################################################################
 
-
-###############################################################################
-# RANDOM RELATED FUNCTIONS                                                    #
-###############################################################################
-
 # Input : Genome
 # Output : Reverse complement of Genome
 def ReverseComplement ( Text ) :
@@ -265,45 +260,6 @@ def Neighbors(Pattern, d):
         else :
             Neighborhood . append ( Pattern [ 0 ] + Text )
     return Neighborhood
-
-###############################################################################
-# DEBUGGING ZONE                                                              #
-###############################################################################
-
-import time
-
-
-#INPUT FROM SITE
-t1 = time . time ( )
-with open ( '/Users/sashank/Desktop/Data/d.txt' , mode = 'r') as f:
-    print ( "Execution started" )
-    genome = f . readline ( 10000000000000000 )
-    genome = genome [ 0 : -1 ] 
-    print ( "Read from file" )
-    k = int ( f . readline ( 100 ) )
-    #d = int ( f . readline ( 100 ) )
-    k = 10
-    d = 2
-'''
-genome = 'AACAAGCTGATAAACATTTAAAGAG'
-p = 'AAAAA'
-'''
-
-words = Neighbors ( 'GCCGGTGCTCC' , 3 )
-
-#OUTPUT INTO FILE
-
-with open ( '/Users/sashank/Desktop/Data/out.txt' , mode = 'w' ) as f :
-    for i in words : 
-        f . write ( str ( i ) + ' ' )
-    '''
-    f . write ( str ( count ) )
-    '''
-'''
-print ( count )
-'''
-t2 = time . time ( )
-print ( "Execution Complete. Time taken : " , t2 - t1 )
 
 
 
