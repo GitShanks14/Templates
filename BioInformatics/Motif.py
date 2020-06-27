@@ -153,25 +153,5 @@ def Entropy ( profile ) :
     p = np . sum ( p )
     return p
     
-    
-###############################################################################
-#                            TESTING GROUNDS                                  #
-###############################################################################
-
-
-Motifs = [
-"TCGGGGGTTTTT",
-"CCGGTGACTTAC",
-"ACGGGGATTTTC",
-"TTGGGGACTTTT",
-"AAGGGGACTTCC",
-"TTGGGGACTTCC",
-"TCGGGGATTCAT",
-"TCGGGGATTCCT",
-"TAGGGGAACTAC",
-"TCGGGTATAACC"
-]
-    
-print ( Entropy ( Profile ( Motifs ) ) )
 
     
