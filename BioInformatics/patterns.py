@@ -116,7 +116,6 @@ def KmersToPositions ( Text , k ) :           # NET: O ( |Text| )
             m [ Text [ i : i + k ] ] . append ( i )
         else :
             m [ Text [ i : i + k ] ] = [ i ]
-    global t2
     return m
 
 # Input  : Genome, Window length, frequency cutoff, and kmer length.
