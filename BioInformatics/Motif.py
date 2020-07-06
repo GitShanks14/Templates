@@ -4,68 +4,13 @@
 
 import numpy as np
 import random 
+import sys
 
-######################### Utility functions ###################################
+sys . path . insert ( 0 , '/Users/sashank/Desktop/Python/Libraries/Bioinformatics/BioUtils' )
 
-# Input : Genome
-# Output : Reverse complement of Genome
-def ReverseComplement ( Text ) :
-    m = { 'A' : 'T' , 'T' : 'A' , 'G' : 'C' , 'C' : 'G' }
-    s = ''
-    for i in Text [ -1 :  : -1 ] :
-        s += m [ i ]
-    return s
+import BioUtils as bf
 
-def PatternToNumber ( text ) :
-    s = 0
-    m = { 'A' : 0 , 'C' : 1 , 'G' : 2 , 'T' : 3 } 
-    for i in text :
-        s *= 4
-        s += m [ i ]
-    return s
 
-def NumberToPattern(index, k):
-    m = { 0 : 'A' , 1 : 'C' , 2 : 'G' , 3 : 'T' }
-    s = ''
-    while k :
-        k -= 1
-        s += m [ index % 4 ]
-        index //= 4
-    return s [ -1 : : -1 ]
-
-# Input:  Two strings p and q
-# Output: Hamming Distance between p and q.
-def HammingDistance(p, q):
-    h = 0
-    a = len ( p ) 
-    b = len ( q ) 
-    if ( a < b ) :
-        l = a
-    else : 
-        l = b
-    for i in range ( l ) :
-        if ( p [ i ] != q [ i ] ) :
-            h += 1
-    return h
-
-# Input  : A pattern and a distance d
-# Output : All patterns in the d neighborhood 
-
-def Neighbors(Pattern, d):
-    if d == 0 :
-        return [ Pattern ]
-    if len ( Pattern ) == 1 : 
-            return [ 'A' , 'C' , 'G' , 'T' ]
-    Neighborhood = [ ]
-    bases = [ 'A' , 'C' , 'G' , 'T' ]
-    SuffixNeighbors = Neighbors ( Pattern [ 1 : ] , d )
-    for Text in SuffixNeighbors :
-        if HammingDistance ( Pattern [ 1 : ] , Text ) < d :
-            for x in bases :
-                    Neighborhood . append ( x + Text )
-        else :
-            Neighborhood . append ( Pattern [ 0 ] + Text )
-    return Neighborhood
 
 # Input:  A set of kmers Motifs
 # Output: Counts the no. of each bases in each position naively w/o pseudocounts
@@ -127,7 +72,7 @@ def ScoreV2 ( Motifs ) :
     c = Consensus ( Count ( Motifs ) )
     score = 0
     for i in range ( len ( Motifs ) ) :
-        score += HammingDistance( Motifs [ i ] , c )
+        score += bf . HammingDistance( Motifs [ i ] , c )
     return score
 
 # Input:  A list of kmers Motifs
@@ -169,7 +114,7 @@ def BestMotifs ( Pattern , Dna ) :
         d = 100000
         p = None
         for j in range ( len ( Dna [ 0 ] ) - k + 1 ) :  # n - k ~ n steps
-            d2 = HammingDistance ( Dna [ i ][ j : j + k ] , Pattern ) # k steps
+            d2 = bf . HammingDistance ( Dna [ i ][ j : j + k ] , Pattern ) # k steps
             if ( d2 < d ) :
                 d = d2
                 p = Dna [ i ][ j : j + k ]
@@ -252,6 +197,7 @@ def ProfileGeneratedString(Text, profile, k):
 ###############################################################################
 #                       MOTIF SEARCHES                                        #
 ###############################################################################
+
 # Brute force Motif search
 # Input  : collection of Dna strings , k , d
 # Output : All motifs of len k that have at least 1 kmer from their d neighbors
@@ -260,12 +206,12 @@ def ProfileGeneratedString(Text, profile, k):
 def MotifSearchBF ( dna , k , d ) :
     patterns = [ ]
     for i in range ( 0 , len ( dna [ 0 ] ) - k + 1 ) :
-        neighbors = Neighbors ( dna [ 0 ][ i : i + k ] , d )
+        neighbors = bf . Neighbors ( dna [ 0 ][ i : i + k ] , d )
         for j in neighbors:
             count = 0
             for l in dna :
                 for i in range ( 0 , len ( l ) - k + 1 ) :
-                    if HammingDistance ( j , l [ i : i + k ] ) <= d :
+                    if bf . HammingDistance ( j , l [ i : i + k ] ) <= d :
                         count += 1
                         break
             if count == len ( dna ) :
@@ -273,6 +219,7 @@ def MotifSearchBF ( dna , k , d ) :
     Patterns = [] 
     [ Patterns . append ( x ) for x in patterns if x not in Patterns ] 
     return Patterns
+
 # BRUTE FORCE MOTIF SEARCH: Traverses ALL possible kmers to find the one for 
 # which the lowest scoring motif set exists. DOUBLE MINIMISATION PROBLEM
 # Input : A list of strings of Dna of equal length, length k of pattern to be found
@@ -283,7 +230,7 @@ def BFMotifSearch ( Dna , k ) : #Median String search
     p = [ ]
     d = 10000000
     for i in range ( 4 ** k ) :
-        p2 = NumberToPattern( i , k )
+        p2 = bf . NumberToPattern( i , k )
         d2 , m2 = BestMotifs ( p2 , Dna )
         if ( d2 < d ) :
             p . clear ( )
@@ -388,3 +335,41 @@ def RepeatedGibbsSampler ( Dna , k , n_inner , N ) :
 ###############################################################################
 #                            TESTING GROUNDS                                  #
 ###############################################################################
+
+import time
+t0 = time . time ( )
+
+def timer ( ):
+    global t0
+    print ( "Execution of block took {} s" . format ( time . time ( ) - t0 ) )
+    t0 = time . time ( )
+    
+'''
+k = 6
+
+with open ( '/Users/sashank/Desktop/Data/d.txt' , mode = 'r') as f:
+    genome = f . readline ( 10000000000000000 )
+    Dna = genome . split ( )
+    print ( "Data read from file." )
+    score , motifs , p = BFMotifSearch ( Dna , k )
+    print ( score ) 
+    for i in p :
+        print ( i , end = ' ' )
+    print ( '' )
+    timer ( )
+'''
+Dna = [
+]
+
+k = None
+n_inner = None
+N = None
+
+l = RepeatedGibbsSampler ( Dna , k , n_inner , N )
+#imer ( )
+for i in l [ 0 ] : 
+    print ( i , end = ' ' )
+print ( l [ 1 ] )
+'''
+#### DOCUMENT THE CODE!!!
+'''
