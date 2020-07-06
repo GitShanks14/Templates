@@ -67,28 +67,6 @@ def Neighbors(Pattern, d):
             Neighborhood . append ( Pattern [ 0 ] + Text )
     return Neighborhood
 
-# Brute force Motif search
-# Input  : collection of Dna strings , k , d
-# Output : All motifs of len k that have at least 1 kmer from their d neighbors
-            # in each string of Dna
-        
-def MotifSearchBF ( dna , k , d ) :
-    patterns = [ ]
-    for i in range ( 0 , len ( dna [ 0 ] ) - k + 1 ) :
-        neighbors = Neighbors ( dna [ 0 ][ i : i + k ] , d )
-        for j in neighbors:
-            count = 0
-            for l in dna :
-                for i in range ( 0 , len ( l ) - k + 1 ) :
-                    if HammingDistance ( j , l [ i : i + k ] ) <= d :
-                        count += 1
-                        break
-            if count == len ( dna ) :
-                patterns . append ( j )
-    Patterns = [] 
-    [ Patterns . append ( x ) for x in patterns if x not in Patterns ] 
-    return Patterns
-
 # Input:  A set of kmers Motifs
 # Output: Counts the no. of each bases in each position naively w/o pseudocounts
 def Count(Motifs):
@@ -274,7 +252,27 @@ def ProfileGeneratedString(Text, profile, k):
 ###############################################################################
 #                       MOTIF SEARCHES                                        #
 ###############################################################################
-
+# Brute force Motif search
+# Input  : collection of Dna strings , k , d
+# Output : All motifs of len k that have at least 1 kmer from their d neighbors
+            # in each string of Dna
+        
+def MotifSearchBF ( dna , k , d ) :
+    patterns = [ ]
+    for i in range ( 0 , len ( dna [ 0 ] ) - k + 1 ) :
+        neighbors = Neighbors ( dna [ 0 ][ i : i + k ] , d )
+        for j in neighbors:
+            count = 0
+            for l in dna :
+                for i in range ( 0 , len ( l ) - k + 1 ) :
+                    if HammingDistance ( j , l [ i : i + k ] ) <= d :
+                        count += 1
+                        break
+            if count == len ( dna ) :
+                patterns . append ( j )
+    Patterns = [] 
+    [ Patterns . append ( x ) for x in patterns if x not in Patterns ] 
+    return Patterns
 # BRUTE FORCE MOTIF SEARCH: Traverses ALL possible kmers to find the one for 
 # which the lowest scoring motif set exists. DOUBLE MINIMISATION PROBLEM
 # Input : A list of strings of Dna of equal length, length k of pattern to be found
