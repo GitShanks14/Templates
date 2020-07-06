@@ -1,12 +1,9 @@
-import time
+##################### For dealing with .txt and other similar file inputs ( custom inputs ) #########################
 
-##################### For dealing with .txt ad other similar file inputs ( custom inputs ) #########################
-
-t0 = time . time ( )
 with open ( '<InsertFileName' , mode = 'r' ) as f :
-    # Readline ( upper_limit ) returns line by line
-    # Perform operations on the data read to avoid exceptions. Do it outside if data = Null works
-    print ( "Time Elapsed : " , ( time . time ( ) - t0 ) )
-    t0 = time . time ( )
+    f . readline ( 10000000000 ) # Reads one long line
 
-#Perform intermediate operations and repeat the same in write mode
+with open ( '/Users/sashank/Desktop/Data/out.txt' , mode = 'w' ) as f :
+    for i in l :                       #Writes list entries line by line
+        f . write ( str ( i ) + '\n' )
+
