@@ -2,46 +2,18 @@
 #  Finding Patterns                                                           #
 ###############################################################################
 
-# Input : Genome
-# Output : Reverse complement of Genome
-def ReverseComplement ( Text ) :
-    m = { 'A' : 'T' , 'T' : 'A' , 'G' : 'C' , 'C' : 'G' }
-    s = ''
-    for i in Text [ -1 :  : -1 ] :
-        s += m [ i ]
-    return s
+import BioUtils as bf
 
-def PatternMatching ( Pattern , Genome ) :
-    pos = [ ]
-    l = len ( Pattern )
-    for i in range ( len ( Genome ) - l + 1 ) :
-        if Genome [ i : i + l ] == Pattern :
-            pos . append ( i )
-    return pos
-
-def PatternToNumber ( text ) :
-    s = 0
-    m = { 'A' : 0 , 'C' : 1 , 'G' : 2 , 'T' : 3 } 
-    for i in text :
-        s *= 4
-        s += m [ i ]
-    return s
-
-def NumberToPattern(index, k):
-    m = { 0 : 'A' , 1 : 'C' , 2 : 'G' , 3 : 'T' }
-    s = ''
-    while k :
-        k -= 1
-        s += m [ index % 4 ]
-        index //= 4
-    return s [ -1 : : -1 ]
+###############################################################################
+# RANDOM RELATED FUNCTIONS                                                    #
+###############################################################################
 
 def ComputingFrequencies(text, k):
     freq = [ ]
     for i in range ( 4 ** k ) :
         freq . append ( 0 )
     for i in range ( len ( text ) - k + 1 ) :
-        freq [ PatternToNumber ( text [ i : i + k ] ) ] += 1
+        freq [ bf . PatternToNumber ( text [ i : i + k ] ) ] += 1
     return freq
 
 ################################################################################
@@ -116,6 +88,7 @@ def KmersToPositions ( Text , k ) :           # NET: O ( |Text| )
             m [ Text [ i : i + k ] ] . append ( i )
         else :
             m [ Text [ i : i + k ] ] = [ i ]
+    global t2
     return m
 
 # Input  : Genome, Window length, frequency cutoff, and kmer length.
@@ -210,7 +183,7 @@ def ApproximateFrequentWords ( Text , k , d ) :
     m = 0
     # Creating dict of all possible kmers
     for i in range ( 4 ** k ) :
-        freq [ NumberToPattern ( i , k ) ] = 0
+        freq [ bf . NumberToPattern ( i , k ) ] = 0
     #Now, for each key in freq, count the number of approximate matches and
     # simultaneously find the max
     for key , value in freq.items ( ) :
@@ -230,12 +203,11 @@ def ApproximateFrequentWordsRC ( Text , k , d ) :
     
     # Creating dict of all possible kmers
     for i in range ( 4 ** k ) :
-        s = NumberToPattern ( i , k )
+        s = bf . NumberToPattern ( i , k )
         freq [ s ] = ApproximatePatternCount ( Text , s , d )
-    print ( "Dict Created" , time . time ( ) - t1 )
     # Now total the scores and find max
     for key in freq :
-        v = freq [ key ] + freq [ ReverseComplement ( key ) ]
+        v = freq [ key ] + freq [ bf . ReverseComplement ( key ) ]
         if ( v > m ) :
             m = v
             words . clear ( )
@@ -244,21 +216,45 @@ def ApproximateFrequentWordsRC ( Text , k , d ) :
             words . append ( key )
     return words
 
-def Neighbors(Pattern, d):
-    if d == 0 :
-        return [ Pattern ]
-    if len ( Pattern ) == 1 : 
-            return [ 'A' , 'C' , 'G' , 'T' ]
-    Neighborhood = [ ]
-    bases = [ 'A' , 'C' , 'G' , 'T' ]
-    SuffixNeighbors = Neighbors ( Pattern [ 1 : ] , d )
-    for Text in SuffixNeighbors :
-        if HammingDistance ( Pattern [ 1 : ] , Text ) < d :
-            for x in bases :
-                    Neighborhood . append ( x + Text )
-        else :
-            Neighborhood . append ( Pattern [ 0 ] + Text )
-    return Neighborhood
+###############################################################################
+# DEBUGGING ZONE                                                              #
+###############################################################################
+
+#import time
+
+#"""
+#INPUT FROM SITE
+with open ( '/Users/sashank/Desktop/Data/d.txt' , mode = 'r') as f:
+    print ( "Execution started" )
+    genome = f . readline ( 10000000000000000 )
+    #genome = genome [ 0 : -1 ] 
+    print ( "Data read from file." )
+    #k = int ( f . readline ( 100 ) )
+    #d = int ( f . readline ( 100 ) )
+
+'''
+genome = 'AACAAGCTGATAAACATTTAAAGAG'
+p = 'AAAAA'
+'''
+
+words = LtClumpsV2 ( genome , 500 , 3 , 9 ) 
+print ( len ( words ) )
+
+#OUTPUT INTO FILE
+
+'''
+with open ( '/Users/sashank/Desktop/Data/out.txt' , mode = 'w' ) as f :
+    for i in words : 
+        f . write ( str ( i ) + ' ' )
+#    f . write ( str ( count ) )
+
+
+print ( count )
+
+t2 = time . time ( )
+print ( "Execution Complete. Time taken : " , t2 - t1 )
+'''
+
 
 
 
