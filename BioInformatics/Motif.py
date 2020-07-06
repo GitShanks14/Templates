@@ -6,6 +6,7 @@ import numpy as np
 import random 
 import sys
 
+# Edit the path so as to import BioUtils
 sys . path . insert ( 0 , '/Users/sashank/Desktop/Python/Libraries/Bioinformatics/BioUtils' )
 
 import BioUtils as bf
@@ -335,41 +336,3 @@ def RepeatedGibbsSampler ( Dna , k , n_inner , N ) :
 ###############################################################################
 #                            TESTING GROUNDS                                  #
 ###############################################################################
-
-import time
-t0 = time . time ( )
-
-def timer ( ):
-    global t0
-    print ( "Execution of block took {} s" . format ( time . time ( ) - t0 ) )
-    t0 = time . time ( )
-    
-'''
-k = 6
-
-with open ( '/Users/sashank/Desktop/Data/d.txt' , mode = 'r') as f:
-    genome = f . readline ( 10000000000000000 )
-    Dna = genome . split ( )
-    print ( "Data read from file." )
-    score , motifs , p = BFMotifSearch ( Dna , k )
-    print ( score ) 
-    for i in p :
-        print ( i , end = ' ' )
-    print ( '' )
-    timer ( )
-'''
-Dna = [
-]
-
-k = None
-n_inner = None
-N = None
-
-l = RepeatedGibbsSampler ( Dna , k , n_inner , N )
-#imer ( )
-for i in l [ 0 ] : 
-    print ( i , end = ' ' )
-print ( l [ 1 ] )
-'''
-#### DOCUMENT THE CODE!!!
-'''
