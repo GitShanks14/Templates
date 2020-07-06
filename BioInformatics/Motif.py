@@ -3,6 +3,7 @@
 ###############################################################################
 
 import numpy as np
+import random 
 
 ######################### Utility functions ###################################
 
@@ -198,12 +199,88 @@ def BestMotifs ( Pattern , Dna ) :
         score += d 
     return score , Motifs
             
+def Pr ( string , profile ) :
+    m = { 'A' : 0 , 'C' : 1 , 'G' : 2 , 'T' : 3 }
+    p = 1
+    for i in range ( len ( string ) ) :
+        p *= profile [ m [ string [ i ] ] , i ]
+    return p
+
+def MostProbableKmer ( genome , profile , k ) :
+    p = 0
+    kmer = [ ]
+    for i in range ( len ( genome ) - k + 1 ) :
+        p2 = Pr ( genome [ i : i + k ] , profile )
+        if ( p2 > p ) : 
+            p = p2
+            kmer . clear ( )
+            kmer . append ( genome [ i : i + k ] )
+        elif ( p2 == p ) :
+            kmer . append ( genome [ i : i + k ] )
+    return kmer [ 0 ]
+
+# Input:  A profile matrix Profile and a list of strings Dna
+# Output: Motifs(Profile, Dna). Meant to be used with randomized Profile. 
+def Motifs ( Profile , Dna , k ) :
+    Motifs = [ ]
+    for i in Dna : 
+        Motifs . append ( MostProbableKmer ( i , Profile , k ) )
+    return Motifs
+
+def RandomMotifs ( Dna , k ) :
+    t = len ( Dna )
+    n = len ( Dna [ 0 ] )
+    Motifs = [ ]
+    for i in range ( t ) :
+        x = random . randint ( 0 , n - k )
+        Motifs . append ( Dna [ i ][ x : x + k ] ) 
+    return Motifs
+
+# Input: A dictionary Probabilities, where keys are k-mers and values are the probabilities of these k-mers (which do not necessarily sum up to 1)
+# Output: A normalized dictionary where the probability of each k-mer was divided by the sum of all k-mers' probabilities
+def Normalize(Probabilities):
+    s = 0 
+    for i in Probabilities . keys ( ) : 
+        s += Probabilities [ i ] 
+    for i in Probabilities . keys ( ) : 
+        Probabilities [ i ] /= s
+    return Probabilities 
+
+# Input:  A dictionary Probabilities whose keys are k-mers and whose values are the probabilities of these kmers
+# Output: A randomly chosen k-mer with respect to the values in Probabilities
+def WeightedDie(Probabilities):
+    kmer = '' # output variable
+    p = random . uniform ( 0 , 1 )
+    flag = 1
+    for i in Probabilities . keys ( ) :
+        if ( p > Probabilities [ i ] ) :
+            p -= Probabilities [ i ]
+        elif ( flag == 1 ) :
+            kmer = i
+            flag = 0
+    return kmer
+
+#Input:  A string Text, a profile matrix Profile, and an integer k
+# Output: ProfileGeneratedString(Text, profile, k)
+def ProfileGeneratedString(Text, profile, k):
+    n = len ( Text )
+    probabilities = { } 
+    for i in range ( 0 , n - k + 1 ) :
+        probabilities [ Text [ i : i + k ] ] = Pr ( Text [ i : i + k ] , profile )
+    probabilities = Normalize ( probabilities )
+    return WeightedDie ( probabilities )
+
+
+###############################################################################
+#                       MOTIF SEARCHES                                        #
+###############################################################################
+
 # BRUTE FORCE MOTIF SEARCH: Traverses ALL possible kmers to find the one for 
 # which the lowest scoring motif set exists. DOUBLE MINIMISATION PROBLEM
 # Input : A list of strings of Dna of equal length, length k of pattern to be found
 # INEFFICIENT. 4^k can be narrowed down dramatically. 
 # Method may not be improved upon, due to existence of more promising alternative.
-def BFMotifSearch ( Dna , k ) :
+def BFMotifSearch ( Dna , k ) : #Median String search
     Motifs = [ ]
     p = [ ]
     d = 10000000
@@ -220,7 +297,96 @@ def BFMotifSearch ( Dna , k ) :
             p . append ( p2 )
             Motifs . append ( m2 )
     return d , Motifs , p
-            
+
+#Starts off with kmer from first strand. Builds profile and selects best ith motif 
+# using the first i-1 motifs. Does so for all possible kmers from first strand
+# Returns the best of the motif sets encountered this way
+def GreedyMotifSearch ( Dna , k ) :         #O(nt(n+kt)) ~ O ( n^2 t ). << O(n^t)
+    best = [ i [ 0 : k ] for i in Dna ]
+    bscore = Score ( Count ( best ) )
+    score = 0
+    t = len ( Dna )
+    for i in range ( len ( Dna [ 0 ] ) - k + 1 ) :   # O ( n ) iterations 
+        Motif = [ Dna [ 0 ][ i : i + k ] ]
+        for i in range ( 1 , t ) :                   # O ( t ) iterations
+            profile = Profile ( Motif )              # O ( k t )
+            Motif . append ( MostProbableKmer ( Dna [ i ] , profile , k ) [ 0 ] ) # O ( n )
+        score = Score ( Count ( Motif ) )
+        if ( score < bscore ) :
+            bscore = score
+            best = Motif
+    return best
+
+def GreedyMotifSearchPC ( Dna , k ) :         #O(nt(n+kt)) ~ O ( n^2 t ). << O(n^t)
+    best = [ i [ 0 : k ] for i in Dna ]
+    bscore = Score ( CountPC ( best ) )
+    score = 0
+    t = len ( Dna )
+    for i in range ( len ( Dna [ 0 ] ) - k + 1 ) :   # O ( n ) iterations 
+        Motif = [ Dna [ 0 ][ i : i + k ] ]
+        for i in range ( 1 , t ) :                   # O ( t ) iterations
+            profile = ProfilePC ( Motif )              # O ( k t )
+            Motif . append ( MostProbableKmer ( Dna [ i ] , profile , k ) [ 0 ] ) # O ( n )
+        score = Score ( CountPC ( Motif ) )
+        if ( score < bscore ) :
+            bscore = score
+            best = Motif
+    return best
+
+def RandomizedMotifSearch ( Dna , k ) : # 1 round doesn't guarantee much
+    best = RandomMotifs ( Dna , k )
+    bscore = Score ( CountPC ( best ) )
+    M = best
+    while ( True ) : 
+        profile = ProfilePC ( M )
+        M = Motifs ( profile , Dna , k )
+        score = Score ( CountPC ( M ) )
+        if ( score < bscore ) :
+            bscore = score
+            best = M
+        else : 
+            return best , bscore
+     
+def RepeatedRandomizedMotifSearch ( Dna , k , N ) : 
+    BestMotifs , bscore = RandomizedMotifSearch ( Dna , k )
+    for i in range ( N - 1 ):
+        M , score = RandomizedMotifSearch ( Dna , k )
+        if bscore > score :
+            BestMotifs = M
+            bscore = score
+        if ( i % 20 == 0 ) : 
+            print ( i )
+    return BestMotifs , bscore
+
+def GibbsSampler ( Dna , k , N ) :
+    best = RandomMotifs ( Dna , k )
+    bscore = Score ( CountPC ( best ) )
+    score = None
+    M = best 
+    t = len ( Dna ) 
+    for i in range ( N - 1 ) :
+        j = random . randint ( 0 , t - 1 )
+        M . pop ( j )
+        profile = ProfilePC ( M )
+        M . insert ( j , ProfileGeneratedString ( Dna [ j ] , profile , k ) ) 
+        #M [ j ] = ProfileGeneratedString ( Dna [ j ] , profile , k )
+        score = Score ( CountPC ( M ) )
+        if ( score < bscore ) :
+            best = M
+            bscore = score
+    return best , bscore
+
+def RepeatedGibbsSampler ( Dna , k , n_inner , N ) :
+    best , bscore = GibbsSampler ( Dna , k , n_inner )
+    for i in range ( N - 1 ) :
+        M , score = GibbsSampler ( Dna , k , n_inner ) 
+        if ( bscore > score ) : 
+            best = M
+            bscore = score
+        if ( i % 2 == 0 ) :
+            print ( i ) 
+    return best , bscore
+
 ###############################################################################
 #                            TESTING GROUNDS                                  #
 ###############################################################################
@@ -233,7 +399,7 @@ def timer ( ):
     print ( "Execution of block took {} s" . format ( time . time ( ) - t0 ) )
     t0 = time . time ( )
     
-
+'''
 k = 6
 
 with open ( '/Users/sashank/Desktop/Data/d.txt' , mode = 'r') as f:
@@ -246,7 +412,19 @@ with open ( '/Users/sashank/Desktop/Data/d.txt' , mode = 'r') as f:
         print ( i , end = ' ' )
     print ( '' )
     timer ( )
-    
-#### DOCUMENT THE CODE!!!
+'''
+Dna = [
+]
 
-    
+k = None
+n_inner = None
+N = None
+
+l = RepeatedGibbsSampler ( Dna , k , n_inner , N )
+#imer ( )
+for i in l [ 0 ] : 
+    print ( i , end = ' ' )
+print ( l [ 1 ] )
+'''
+#### DOCUMENT THE CODE!!!
+'''
