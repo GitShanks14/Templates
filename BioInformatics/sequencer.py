@@ -136,6 +136,48 @@ def EulerianPath ( Graph ) :
         i += 1
     return FPath
 
+def StringReconstruction ( Patterns , k ):
+    db = DeBrujin( Patterns )
+    DubGraph = { }
+    for key , val in db . items ( ) :
+        k2 = PatternToNumber ( key ) 
+        DubGraph [ k2 ] = [ ]
+        for i in val :
+            DubGraph [ k2 ] . append ( PatternToNumber ( i ) )
+    RawPath = EulerianPath ( DubGraph )
+    Path = [ ]
+    for i in RawPath : 
+        Path . append ( NumberToPattern ( i , k - 1 ) )
+    Genome = PathToGenome ( Path )
+    return Genome
+        
+def KUniversalCircularString ( k ) :
+    Edges = [ ]
+    for i in range ( 2 ** k ) :
+        b = bin ( i )
+        b = b [ 2 : ]
+        while len ( b ) < k :
+            b = '0' + b
+        Edges . append ( b )
+    db = DeBrujin ( Edges ) 
+    DubGraph = { }
+    for key , val in db . items ( ) :
+        k2 = int ( key , 2 )
+        DubGraph [ k2 ] = [ ]
+        for i in val :
+            DubGraph [ k2 ] . append ( int ( i , 2 ) )
+    RawPath = EulerianCycle ( DubGraph , 0 )
+    Path = [ ]
+    for i in RawPath : 
+        b = bin ( i ) 
+        b = b [ 2 : ]
+        while ( len ( b ) < k - 1 ) :
+            b = '0' + b 
+        Path . append ( b )
+    string = PathToGenome ( Path )
+    string = string [ 0 : len ( string ) - k + 1 ]
+    return string
+
 ################################################################################
 #                       TESTING GROUNDS                                        #
 ################################################################################
