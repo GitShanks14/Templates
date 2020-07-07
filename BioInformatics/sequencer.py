@@ -80,6 +80,20 @@ def DeBrujin ( Edges ) :        # Edges = composition of the Genome.
                 AdjList [ Nodes [ i ] ] . append ( Suffix ( Edges [ j ] ) ) 
     return AdjList
 
+def EulerianCycle ( Graph , NewStart = 0 ) :
+    MainCycle = [ ]
+    Cycle = [ NewStart ]
+    node = NewStart 
+    while Graph [ node ] :                  # Walk
+        node = Graph [ node ] . pop ( 0 )
+        Cycle . append ( node )
+    for node in Cycle :
+        if ( Graph [ node ] ) :
+            MainCycle . extend ( EulerianCycle ( Graph , node ) )
+        else :
+            MainCycle . append ( node )
+    return MainCycle
+
 ################################################################################
 #                       TESTING GROUNDS                                        #
 ################################################################################
