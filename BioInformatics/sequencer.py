@@ -94,6 +94,48 @@ def EulerianCycle ( Graph , NewStart = 0 ) :
             MainCycle . append ( node )
     return MainCycle
 
+def EulerianPath ( Graph ) :
+    count = { }
+    elen = 0
+    for key , val in Graph . items ( ) :
+        if key not in count :
+            count [ key ] = -len ( val )
+        else :
+            count [ key ] -= len ( val )
+        elen += len ( val )
+        for i in val : 
+            if i not in count :
+                count [ i ] = 1
+            else : 
+                count [ i ] += 1
+    start = None
+    end = None
+    for key , val in count . items ( ) :
+        if val != 0 :
+            if val == -1 and start == None :
+                start = key
+            elif val == 1 and end == None : 
+                end = key
+            else : 
+                print ( "ERROR: NO EULERIAN PATH PRESENT" )
+                return
+    if end not in Graph :
+        Graph [ end ] = [ ]
+    Graph [ end ] . append ( start )
+    Path = EulerianCycle ( Graph , start )
+    pos = None
+    for i in range ( len ( Path ) - 1 ) :
+        if Path [ i ] == end and Path [ i + 1 ] == start:
+            pos = i + 1
+            break
+    i = 1 
+    n = len ( Path )
+    FPath = [ ]
+    while i < n :
+        FPath . append ( Path [ ( pos + i ) % n ] )
+        i += 1
+    return FPath
+
 ################################################################################
 #                       TESTING GROUNDS                                        #
 ################################################################################
