@@ -178,6 +178,84 @@ def KUniversalCircularString ( k ) :
     string = string [ 0 : len ( string ) - k + 1 ]
     return string
 
+######################## PAIRED READS #########################################
+
+def CompositionPR ( Pattern , k , d ) :
+    First = Composition ( Pattern [ : - d - k ] , k )
+    Second = Composition ( Pattern [ k + d : ] , k )
+    Final = [ ]
+    for i in range ( len ( First ) ) :
+        Final . append ( First [ i ] + '|' + Second [ i ] )
+    return Final
+
+def PathToGenomePR ( Path , d ) :
+    s = Path [ 0 ] . split ( '|' )
+    Genome1 = s [ 0 ]
+    Genome2 = s [ 1 ]
+    k = len ( s [ 0 ] ) + 1
+    for i in range ( 1 , len ( Path ) ) :
+        s = Path [ i ] . split ( '|' )
+        Genome1 += s [ 0 ][ -1 :  ]
+        Genome2 += s [ 1 ][ -1 :  ]
+    if ( Genome1 [ k + d : ] == Genome2 [ : - k - d ] ) :
+        Genome1 += Genome2 [ - k - d : ]
+    else : 
+        print ( 'PATH DOES NOT MAP TO A VALID GENOME.' )
+    return Genome1
+
+# Input  : Kmer 
+# Output : First k-1 bases
+def PrefixPR ( Read ) :
+    s = Read . split ( '|' )
+    return Prefix ( s [ 0 ] ) + '|' + Prefix ( s [ 1 ] )
+
+# Input  : Kmer 
+# Output : Last k-1 bases
+def SuffixPR ( Read ) :
+    s = Read . split ( '|' )
+    return Suffix ( s [ 0 ] ) + '|' + Suffix ( s [ 1 ] )
+
+# Input  : Reads of a genome, used as the edges of the DeBrujin Graph
+# Output : DiGraph w nodes = (k-1)-mers and the path -> genome
+# O(kn^2)
+def DeBrujinPR ( Edges ) :        # Edges = composition of the Genome. 
+    Nodes = [ ]
+    for i in Edges :            # O(n) nodes -> O(n) edges here
+        p = PrefixPR ( i )
+        s = SuffixPR ( i )
+        if p not in Nodes :     # O(n) search twice, O(k) comparison
+            Nodes . append ( p )
+        if s not in Nodes : 
+            Nodes . append ( s )
+    n = len ( Edges )
+    AdjList = { }
+    for i in range ( len ( Nodes ) ) :  # O(n) steps
+        AdjList [ Nodes [ i ] ] = [ ] 
+        for j in range ( n ) :          # O(n) steps
+            if PrefixPR ( Edges [ j ] ) == Nodes [ i ] : # O(k) comparison
+                AdjList [ Nodes [ i ] ] . append ( SuffixPR ( Edges [ j ] ) ) 
+    return AdjList
+
+def StringReconstructionPR ( Patterns , k , d ):
+    db = DeBrujinPR ( Patterns )
+    timer ( )
+    DubGraph = { }
+    X = 4 ** ( k - 1 )
+    for key , val in db . items ( ) :
+        s = key . split ( '|' )
+        k2 = ( PatternToNumber ( s [ 0 ] ) * X ) + PatternToNumber ( s [ 1 ] )
+        DubGraph [ k2 ] = [ ]
+        for i in val :
+            s = i . split ( '|' )
+            DubGraph [ k2 ] . append ( ( PatternToNumber ( s [ 0 ] ) * X ) + PatternToNumber ( s [ 1 ] ) )
+    timer ( )
+    RawPath = EulerianPath ( DubGraph )
+    Path = [ ]
+    for i in RawPath : 
+        Path . append ( NumberToPattern ( i // X  , k - 1 ) + '|' + NumberToPattern ( i % X , k - 1 ) )
+    Genome = PathToGenomePR ( Path , d )
+    return Genome
+
 ################################################################################
 #                       TESTING GROUNDS                                        #
 ################################################################################
