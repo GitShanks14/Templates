@@ -72,3 +72,100 @@ def FindAllEncodings ( Dna , Peptide ) :
             substrings . append ( Dna [ i : i + k ] ) 
     return substrings
    
+mass = {
+        'G' : 57,
+        'A' : 71,
+        'S' : 87,
+        'P' : 97,
+        'V' : 99,
+        'T' : 101,
+        'C' : 103,
+        'I' : 113,
+        'L' : 113,
+        'N' : 114,
+        'D' : 115,
+        'K' : 128,
+        'Q' : 128,
+        'E' : 129,
+        'M' : 131,
+        'H' : 137,
+        'F' : 147,
+        'R' : 156,
+        'Y' : 163,
+        'W' : 186
+}
+
+def LinearSpectrum ( Peptide ) :
+    PrefixMass = [ 0 ]
+    Spectrum = [ 0 ]
+    n = len ( Peptide )
+    for i in range ( n ) :
+        PrefixMass . append ( PrefixMass [ i ] + mass [ Peptide [ i ] ] )
+    for i in range ( n ) :
+        for j in range ( i + 1 , n + 1 ) :
+            Spectrum . append ( PrefixMass [ j ] - PrefixMass [ i ] )
+    Spectrum . sort ( )
+    return Spectrum
+
+def CyclicSpectrum ( Peptide ) :
+    PrefixMass = [ 0 ]
+    Spectrum = [ 0 ]
+    n = len ( Peptide )
+    Peptide += Peptide
+    for i in range ( 2 * n ) :
+        PrefixMass . append ( PrefixMass [ i ] + mass [ Peptide [ i ] ] )
+    for i in range ( n ) :
+        for j in range ( i + 1 , i + n ) :
+            Spectrum . append ( PrefixMass [ j ] - PrefixMass[ i ] )
+    Spectrum . sort ( )
+    Spectrum . append ( PrefixMass [ n ] )
+    return Spectrum
+
+
+CountMemoize = { 0 : 1 }
+AminoAcids = [ 'G' , 'A' , 'S' , 'P' , 'V' , 'T' , 'C' , 'I' , 'N' , 
+               'D' , 'K' , 'E' , 'M' , 'H' , 'F' , 'R' , 'Y' , 'W' ]
+
+def CountPeptidesOfMass ( m ) : #Does NOT account for amino acids of same mass
+    count = 0
+    if ( m in CountMemoize ) :
+        return CountMemoize [ m ]
+    elif ( m < 0 ) :
+        return 0
+    for i in AminoAcids :
+        x = m - mass [ i ]
+        c = CountPeptidesOfMass ( x )
+        count += c
+        if x not in CountMemoize :
+            CountMemoize [ x ] = c
+    return count
+        
+def CycloPeptideSequencing ( Spectrum ) :
+    Candidates = [ '' ]
+    pmass = Spectrum [ -1 ]
+    FinalPeptides = [ ]    
+    while ( Candidates ) :
+        # Grow
+        NewCandidates = [ ]
+        for i in Candidates :
+            for j in AminoAcids :
+                NewCandidates . append ( str ( i ) + str ( j ) )
+        Candidates = NewCandidates . copy ( )
+        print ( len ( Candidates ) , ' ->' , end = ' ' )
+        # Filter
+        for i in NewCandidates : 
+            sp = LinearSpectrum ( i )
+            notin = False
+            for j in sp :
+                if j not in Spectrum :
+                    Candidates . remove ( i )
+                    notin = True
+                    break
+            if ( notin == False and sp [ -1 ] == pmass ) :
+                if ( i not in FinalPeptides ) :
+                    FinalPeptides . append ( i )
+                    Candidates . remove ( i )
+        print ( len ( Candidates ) ) 
+        timer ( )
+    return FinalPeptides 
+
