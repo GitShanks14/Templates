@@ -166,6 +166,5 @@ def CycloPeptideSequencing ( Spectrum ) :
                     FinalPeptides . append ( i )
                     Candidates . remove ( i )
         print ( len ( Candidates ) ) 
-        timer ( )
     return FinalPeptides 
 
