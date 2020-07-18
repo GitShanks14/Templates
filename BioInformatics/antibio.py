@@ -95,6 +95,11 @@ mass = {
         'W' : 186
 }
 
+
+
+########################################################################################################################################################
+# The following code represents peptides as strings of characters, and assumes the basic Peptide Set                                                   #
+########################################################################################################################################################
 def LinearSpectrum ( Peptide ) :
     PrefixMass = [ 0 ]
     Spectrum = [ 0 ]
@@ -167,10 +172,6 @@ def CycloPeptideSequencing ( Spectrum ) :
                     Candidates . remove ( i )
         print ( len ( Candidates ) ) 
     return FinalPeptides 
-
-########################################################################################################################################################
-# The following code represents peptides as strings of characters, and assumes the basic Peptide Set                                                   #
-########################################################################################################################################################
 
 def Mass ( Peptide ) :
     m = 0
