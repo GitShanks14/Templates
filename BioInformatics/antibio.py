@@ -263,3 +263,164 @@ def Convolution ( Spectrum ) :
 ################################################################################################################################################################
 # The following code is equivalent to the above code, but uses lists of masses and not strings of characters to represent peptides
 ################################################################################################################################################################
+def LinearSpectrum ( Peptide ) : # Peptide list of masses
+    PrefixMass = [ 0 ]
+    Spectrum = [ 0 ]
+    n = len ( Peptide )
+    for i in range ( n ) :
+        PrefixMass . append ( PrefixMass [ i ] + Peptide [ i ] )
+    for i in range ( n ) :
+        for j in range ( i + 1 , n + 1 ) :
+            Spectrum . append ( PrefixMass [ j ] - PrefixMass [ i ] )
+    Spectrum . sort ( )
+    return Spectrum
+
+def CyclicSpectrum ( Peptide ) : # Peptide list of masses
+    PrefixMass = [ 0 ]
+    Spectrum = [ 0 ]
+    n = len ( Peptide )
+    Peptide2 = Peptide * 2          # LISTS ARE HANDLED BY REFERENCE!!!!!!!
+    for i in range ( 2 * n ) :
+        PrefixMass . append ( PrefixMass [ i ] + Peptide2 [ i ] )
+    for i in range ( n ) :
+        for j in range ( i + 1 , i + n ) :
+            Spectrum . append ( PrefixMass [ j ] - PrefixMass[ i ] )
+    Spectrum . sort ( )
+    Spectrum . append ( PrefixMass [ n ] )
+    return Spectrum
+
+def Mass ( Peptide ) :
+    m = 0
+    for i in Peptide :
+        m += i
+    return m
+        
+def CyclicScore ( Peptide , Spectrum ) :
+    score = 0
+    s = CyclicSpectrum ( Peptide )
+    for i in s : 
+        if i in Spectrum :
+            score += 1
+            Spectrum . remove ( i )
+    return score
+
+def LinearScore ( Peptide , Spectrum ) :
+    score = 0
+    s = LinearSpectrum ( Peptide )
+    for i in s : 
+        if i in Spectrum :
+            score += 1
+            Spectrum . remove ( i )
+    return score
+
+def LeaderboardCycloPeptideSequencing ( Spectrum , N ):
+    Leaderboard = [ [ ] ]        # '' -> empty list. DONE
+    LeaderPeptides = [ ]        # -> list of lists
+    Lscore = 0
+    pmass = Spectrum [ -1 ]  
+    print ( "Mass : " + str ( pmass ) )
+    while Leaderboard :
+        print ( len ( Leaderboard ) , '->' , end = ' ' )
+        NewCandidates = [ ]
+        # Grow
+        for i in Leaderboard :
+            for j in AminoAcids :       # AA -> list of ints = masses                 
+                NewCandidates . append ( i + [ j ] )    # simply append new list. DONE
+        Leaderboard = NewCandidates . copy ( )
+        # Filter
+        for i in Leaderboard . copy ( ) :
+            m = Mass ( i )                  # Rewrite Mass. DONE.
+            if m == pmass :
+                score = CyclicScore ( i , Spectrum . copy ( ) ) # Rewrite Scoring. DONE.
+                if score > Lscore :
+                    Lscore = score 
+                    LeaderPeptides . clear ( )
+                    LeaderPeptides . append ( i )
+                elif score == Lscore :
+                    LeaderPeptides . append ( i )
+            elif m > pmass :
+                    Leaderboard . remove ( i )   
+        #Trim
+        Leaderscores = [ ]
+        for i in Leaderboard :
+            Leaderscores . append ( LinearScore ( i , Spectrum . copy ( ) ) )   # Rewrite Scoring. DONE.
+        Leaderboard . sort ( key = lambda x : LinearScore ( x , Spectrum . copy () ) , reverse = True )
+        Leaderscores . sort ( reverse = True )
+        if ( N < len ( Leaderboard ) ) :
+            score = Leaderscores [ N - 1 ]
+        for i in range ( N , len ( Leaderboard ) ) :
+            if Leaderscores [ i ] < score :
+                Leaderboard = Leaderboard [ : i ]
+                break
+        print ( len ( Leaderboard ) )
+    return LeaderPeptides
+
+def Convolution ( Spectrum ) :
+    Convolution = [ ]
+    n = len ( Spectrum )
+    for i in range ( n ) :
+        for j in range ( i + 1 , n ) :
+            Convolution . append ( Spectrum [ j ] - Spectrum [ i ] )
+    while 0 in Convolution :
+        Convolution . remove ( 0 )
+    return Convolution            
+
+def ConvolutionCycloPeptideSequencing ( Spectrum , N , M ):
+    conv = Convolution ( Spectrum )
+    freq = { }
+    for i in conv :
+        if i not in freq :
+            freq [ i ] = 1
+        else: 
+            freq [ i ] += 1
+    Freq = [ ( k , v ) for k, v in freq . items ( ) ]
+    Freq . sort ( key = lambda x : x [ 1 ] , reverse = True )
+    for i in Freq . copy ( ) :
+        if ( i [ 0 ] > 200 or i [ 0 ] < 57 ) :
+            Freq . remove ( i )
+    tie = Freq [ M - 1 ][ 1 ]
+    for i in range ( M , len ( Freq ) ) :
+            if Freq [ i ][ 1 ] < tie :
+                Freq = Freq [ : i ]
+                break
+    AminoAcids = [ k [ 0 ] for k in Freq ]
+    Leaderboard = [ [ ] ]        # '' -> empty list. DONE
+    LeaderPeptides = [ ]        # -> list of lists
+    Lscore = 0
+    pmass = Spectrum [ -1 ]  
+    print ( "Mass : " + str ( pmass ) )
+    while Leaderboard :
+        print ( len ( Leaderboard ) , '->' , end = ' ' )
+        NewCandidates = [ ]
+        # Grow
+        for i in Leaderboard :
+            for j in AminoAcids :       # AA -> list of ints = masses                 
+                NewCandidates . append ( i + [ j ] )    # simply append new list. DONE
+        Leaderboard = NewCandidates . copy ( )
+        # Filter
+        for i in Leaderboard . copy ( ) :
+            m = Mass ( i )                  # Rewrite Mass. DONE.
+            if m == pmass :
+                score = CyclicScore ( i , Spectrum . copy ( ) ) # Rewrite Scoring. DONE.
+                if score > Lscore :
+                    Lscore = score 
+                    LeaderPeptides . clear ( )
+                    LeaderPeptides . append ( i )
+                elif score == Lscore :
+                    LeaderPeptides . append ( i )
+            elif m > pmass :
+                    Leaderboard . remove ( i )   
+        #Trim
+        Leaderscores = [ ]
+        for i in Leaderboard :
+            Leaderscores . append ( LinearScore ( i , Spectrum . copy ( ) ) )   # Rewrite Scoring. DONE.
+        Leaderboard . sort ( key = lambda x : LinearScore ( x , Spectrum . copy () ) , reverse = True )
+        Leaderscores . sort ( reverse = True )
+        if ( N < len ( Leaderboard ) ) :
+            score = Leaderscores [ N - 1 ]
+        for i in range ( N , len ( Leaderboard ) ) :
+            if Leaderscores [ i ] < score :
+                Leaderboard = Leaderboard [ : i ]
+                break
+        print ( len ( Leaderboard ) )
+    return LeaderPeptides
